@@ -24,12 +24,12 @@ public class CustomAuthSuccessHandler extends SavedRequestAwareAuthenticationSuc
 
     // 성공된 로그인 정보를 기반으로 토큰을 만들어 줌
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         User user = ((DetailsUser) authentication.getPrincipal()).getUser();
         JSONObject jsonValue = (JSONObject) ConvertUtil.convertObjectToJsonObject(user);
         HashMap<String, Object> responseMap = new HashMap<>();
-        JSONObject jsonObject;
 
+        JSONObject jsonObject;
         if(user.getState().equals("N")){
             responseMap.put("userInfo", jsonValue);
             responseMap.put("message", "휴면 상태인 계정입니다.");

@@ -22,12 +22,12 @@ public class TokenUtils {
 
 
     @Value("${jwt.key}")
-    public static void setJwtSecretKey(String jwtSecretKey) {
+    public void setJwtSecretKey(String jwtSecretKey) {
         TokenUtils.jwtSecretKey = jwtSecretKey;
     }
 
     @Value("${jwt.time}")
-    public static void setTokenValidateTime(Long tokenValidateTime) {
+    public void setTokenValidateTime(Long tokenValidateTime) {
         TokenUtils.tokenValidateTime = tokenValidateTime;
     }
 
@@ -121,7 +121,7 @@ public class TokenUtils {
     * */
     private static Map<String, Object> createClaims(User user){
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userName", user.getUserName());
+        claims.put("userId", user.getUserId());
         claims.put("Role", user.getRole());
         claims.put("userEmail", user.getUserEmail());
         return claims;

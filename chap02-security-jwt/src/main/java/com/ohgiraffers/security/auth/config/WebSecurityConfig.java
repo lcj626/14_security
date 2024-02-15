@@ -1,6 +1,7 @@
 package com.ohgiraffers.security.auth.config;
 
 import com.ohgiraffers.security.auth.filter.CustomAuthenticationFilter;
+import com.ohgiraffers.security.auth.filter.JwtAuthorizationFilter;
 import com.ohgiraffers.security.auth.handler.CustomAuthFailureHandler;
 import com.ohgiraffers.security.auth.handler.CustomAuthSuccessHandler;
 import com.ohgiraffers.security.auth.handler.CustomAuthenticationProvider;
@@ -19,7 +20,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
@@ -32,7 +32,7 @@ public class WebSecurityConfig {
     * */
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer(){
-        // 요청 리소스가 static resources을 등록하지 않겠다
+        // 요청 리소스가 static resources(정적자원)을 등록하지 않겠다
         return web -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
     }
 
@@ -44,12 +44,12 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         //Cross-Site Request Forgery 사이트 교차 위조(사이트가 나인척 요청 날림)
-        http.csrf(AbstractHttpConfigurer::disable)
+        http.csrf(AbstractHttpConfigurer::disable) // csrf 보호 비활성화 - 필요 없음
                 .addFilterBefore(jwtAuthorizationFilter(), BasicAuthenticationFilter.class)    //BasicAuth~ 대신에 jwtAuthor를 쓸거다
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  //시큐리티 통해 세션 만들지 않겠다
                 .formLogin(form -> form.disable()) // 스프링 시큐리티에서 제공하는 form을 사용하지 않겠다
-                .addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(basic -> basic.disable());
+                .addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class) // 커스텀 인증 필터 추가
+                .httpBasic(basic -> basic.disable()); // http 보인 인증 비활성화 - 보안 강화
 
         return http.build();
     }
@@ -96,7 +96,7 @@ public class WebSecurityConfig {
         authenticationFilter.setAuthenticationSuccessHandler(customAuthSuccessHandler());
         authenticationFilter.setAuthenticationFailureHandler(customAuthFailureHandler());
 
-        return customAuthenticationFilter();
+        return authenticationFilter;
 
     }
 
@@ -116,5 +116,14 @@ public class WebSecurityConfig {
     @Bean
     public CustomAuthFailureHandler customAuthFailureHandler(){
         return new CustomAuthFailureHandler();
+    }
+
+
+    /**
+     * 9. 사용자 요청 시 수행되는 메소드
+     * @return JwtAuthorizationFilter
+     * */
+    public JwtAuthorizationFilter jwtAuthorizationFilter(){
+        return new JwtAuthorizationFilter(authenticationManager());
     }
 }
